@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -12,6 +12,8 @@ import NutritionScreen from '../screens/nutrition/NutritionScreen';
 import WellnessScreen from '../screens/wellness/WellnessScreen';
 import HealthScreen from '../screens/health/HealthScreen';
 import ProfileScreen from '../screens/social/ProfileScreen';
+import LoginScreen from '../screens/auth/LoginScreen';
+import OnboardingScreen from '../screens/auth/OnboardingScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -95,14 +97,20 @@ const TabNavigator = () => {
 };
 
 const AppNavigator = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
+
   return (
     <NavigationContainer>
-      <Stack.Navigator>
-        <Stack.Screen
-          name="MainTabs"
-          component={TabNavigator}
-          options={{ headerShown: false }}
-        />
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        {!isAuthenticated ? (
+          <>
+            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="Onboarding" component={OnboardingScreen} />
+          </>
+        ) : (
+          <Stack.Screen name="MainTabs" component={TabNavigator} />
+        )}
       </Stack.Navigator>
     </NavigationContainer>
   );
