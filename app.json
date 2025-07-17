@@ -1,29 +1,118 @@
 {
   "expo": {
-    "name": "bulge",
-    "slug": "bulge",
+    "name": "Bulge - Men's Health & Wellness",
+    "slug": "bulge-mens-health",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#111827"
     },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": false,
+      "bundleIdentifier": "com.bulgeapp.ios",
+      "buildNumber": "1",
+      "infoPlist": {
+        "NSCameraUsageDescription": "This app uses the camera to take progress photos and scan food barcodes for nutrition tracking.",
+        "NSPhotoLibraryUsageDescription": "This app accesses your photo library to save and view your fitness progress photos.",
+        "NSHealthShareUsageDescription": "This app integrates with Health app to sync your fitness and health data for comprehensive tracking.",
+        "NSHealthUpdateUsageDescription": "This app updates your Health app with workout and nutrition data to keep your health information current.",
+        "NSMotionUsageDescription": "This app uses motion sensors to track your workouts and daily activity automatically.",
+        "NSLocationWhenInUseUsageDescription": "This app uses your location to track outdoor workouts and find nearby gyms.",
+        "UIBackgroundModes": ["background-fetch", "remote-notification"],
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "associatedDomains": [
+        "applinks:bulgeapp.com",
+        "applinks:*.bulgeapp.com"
+      ],
+      "config": {
+        "usesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#111827"
       },
-      "edgeToEdgeEnabled": true
+      "package": "com.bulgeapp.android",
+      "versionCode": 1,
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "ACTIVITY_RECOGNITION",
+        "VIBRATE",
+        "RECEIVE_BOOT_COMPLETED",
+        "WAKE_LOCK"
+      ],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "data": [
+            {
+              "scheme": "https",
+              "host": "bulgeapp.com"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#2563eb",
+          "sounds": ["./assets/notification-sound.wav"]
+        }
+      ],
+      [
+        "expo-tracking-transparency",
+        {
+          "userTrackingUsageDescription": "This identifier will be used to deliver personalized health recommendations and measure advertising effectiveness."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "This app uses location to track outdoor workouts and find nearby fitness facilities."
+        }
+      ],
+      "expo-font",
+      "expo-secure-store"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "bulge-mens-health-app"
+      }
+    },
+    "owner": "andrewlmu",
+    "privacy": "public",
+    "scheme": "bulge",
+    "updates": {
+      "fallbackToCacheTimeout": 0,
+      "url": "https://u.expo.dev/bulge-mens-health-app"
+    },
+    "runtimeVersion": {
+      "policy": "sdkVersion"
     }
   }
 }
