@@ -16,7 +16,11 @@ import LineChart from '../../components/charts/LineChart';
 import BarChart from '../../components/charts/BarChart';
 import ProgressChart, { ProgressRing } from '../../components/charts/ProgressChart';
 import Card from '../../components/common/Card';
-import Button from '../../components/common/Button';
+import AnimatedCard, { StaggeredList } from '../../components/common/AnimatedCard';
+import AnimatedButton from '../../components/common/AnimatedButton';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { FadeTransition } from '../../components/transitions/SlideTransition';
+import { pullRefreshHaptic, buttonPressHaptic } from '../../utils/haptics';
 import ApiService from '../../services/api';
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -53,6 +57,7 @@ const EnhancedDashboardScreen = ({ navigation }) => {
 
   const onRefresh = async () => {
     setRefreshing(true);
+    pullRefreshHaptic();
     await loadDashboardData();
     setRefreshing(false);
   };
@@ -140,7 +145,11 @@ const EnhancedDashboardScreen = ({ navigation }) => {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading dashboard...</Text>
+          <LoadingSpinner 
+            size="large" 
+            variant="pulse" 
+            text="Loading dashboard..." 
+          />
         </View>
       </SafeAreaView>
     );
@@ -199,16 +208,22 @@ const EnhancedDashboardScreen = ({ navigation }) => {
         </View>
 
         {/* Today's Progress Overview */}
-        <Card style={styles.progressOverview}>
-          <Text style={styles.sectionTitle}>Today's Progress</Text>
-          <ProgressChart
-            data={progressData}
-            size={screenWidth - 120}
-            strokeWidth={12}
-            radius={25}
-            colors={['#ef4444', '#10b981', '#3b82f6', '#8b5cf6']}
-          />
-        </Card>
+        <FadeTransition visible={!loading}>
+          <AnimatedCard 
+            animation="slideUp" 
+            delay={100}
+            style={styles.progressOverview}
+          >
+            <Text style={styles.sectionTitle}>Today's Progress</Text>
+            <ProgressChart
+              data={progressData}
+              size={screenWidth - 120}
+              strokeWidth={12}
+              radius={25}
+              colors={['#ef4444', '#10b981', '#3b82f6', '#8b5cf6']}
+            />
+          </AnimatedCard>
+        </FadeTransition>
 
         {/* Quick Stats Grid */}
         <View style={styles.quickStatsGrid}>
@@ -287,18 +302,20 @@ const EnhancedDashboardScreen = ({ navigation }) => {
         {/* Quick Actions */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Quick Actions</Text>
-          <View style={styles.actionsGrid}>
+          <StaggeredList staggerDelay={150} animation="slideInLeft">
             {quickActions.map((action, index) => (
-              <TouchableOpacity
+              <AnimatedCard
                 key={index}
-                style={[styles.actionCard, { borderLeftColor: action.color }]}
+                pressable
                 onPress={() => {
+                  buttonPressHaptic();
                   if (action.screen === 'WorkoutDetail') {
                     navigation.navigate('Fitness');
                   } else {
                     navigation.navigate(action.screen || 'Fitness');
                   }
                 }}
+                style={[styles.actionCard, { borderLeftColor: action.color }]}
               >
                 <View style={[styles.actionIcon, { backgroundColor: action.color }]}>
                   <Ionicons name={action.icon} size={24} color="white" />
@@ -310,13 +327,17 @@ const EnhancedDashboardScreen = ({ navigation }) => {
                   )}
                 </View>
                 <Ionicons name="chevron-forward" size={16} color="#6b7280" />
-              </TouchableOpacity>
+              </AnimatedCard>
             ))}
-          </View>
+          </StaggeredList>
         </View>
 
         {/* Weekly Insights */}
-        <Card style={styles.insightsCard}>
+        <AnimatedCard 
+          animation="slideInRight" 
+          delay={400}
+          style={styles.insightsCard}
+        >
           <Text style={styles.sectionTitle}>Weekly Insights</Text>
           <View style={styles.insightsList}>
             <View style={styles.insightItem}>
@@ -343,15 +364,26 @@ const EnhancedDashboardScreen = ({ navigation }) => {
               </View>
             </View>
           </View>
-        </Card>
+        </AnimatedCard>
 
         {/* Goal Progress */}
-        <Card style={styles.goalsCard}>
+        <AnimatedCard 
+          animation="scaleIn" 
+          delay={500}
+          style={styles.goalsCard}
+        >
           <View style={styles.goalsHeader}>
             <Text style={styles.sectionTitle}>Current Goals</Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Goals')}>
-              <Text style={styles.seeAllButton}>View All</Text>
-            </TouchableOpacity>
+            <AnimatedButton
+              title="View All"
+              variant="outline"
+              size="small"
+              onPress={() => {
+                buttonPressHaptic();
+                navigation.navigate('Goals');
+              }}
+              style={styles.viewAllButton}
+            />
           </View>
           
           <View style={styles.goalItem}>
@@ -375,7 +407,7 @@ const EnhancedDashboardScreen = ({ navigation }) => {
             </View>
             <Text style={styles.goalPercentage}>80%</Text>
           </View>
-        </Card>
+        </AnimatedCard>
       </ScrollView>
     </SafeAreaView>
   );
@@ -619,6 +651,10 @@ const styles = StyleSheet.create({
     color: '#2563eb',
     width: 40,
     textAlign: 'right',
+  },
+  viewAllButton: {
+    minWidth: 80,
+    paddingHorizontal: 12,
   },
 });
 

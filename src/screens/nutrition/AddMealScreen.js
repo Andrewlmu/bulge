@@ -13,9 +13,12 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { Ionicons } from '@expo/vector-icons';
 import { format } from 'date-fns';
 import Button from '../../components/common/Button';
+import AnimatedButton from '../../components/common/AnimatedButton';
 import Card from '../../components/common/Card';
+import AnimatedCard from '../../components/common/AnimatedCard';
 import FormInput from '../../components/forms/FormInput';
 import { mealSchema } from '../../utils/validation';
+import { buttonPressHaptic, successHaptic } from '../../utils/haptics';
 import { useApp } from '../../context/AppContext';
 import { MEAL_TYPES } from '../../types';
 
@@ -127,11 +130,13 @@ const AddMealScreen = ({ navigation, route }) => {
   ];
 
   const handleMealTypeSelect = (mealType) => {
+    buttonPressHaptic();
     setSelectedMealType(mealType);
     setValue('type', mealType);
   };
 
   const handleQuickAdd = (food) => {
+    buttonPressHaptic();
     setValue('name', food.name);
     setValue('calories', food.calories.toString());
     setValue('protein', food.protein.toString());
@@ -174,6 +179,7 @@ const AddMealScreen = ({ navigation, route }) => {
       };
 
       addMeal(mealData);
+      successHaptic();
       
       Alert.alert(
         'Meal Added!',
@@ -427,12 +433,13 @@ const AddMealScreen = ({ navigation, route }) => {
 
       {/* Save Button */}
       <View style={styles.footer}>
-        <Button
+        <AnimatedButton
           title="Save Meal"
           onPress={handleSubmit(handleSaveMeal)}
           loading={loading}
           disabled={!isValid || loading}
           icon={<Ionicons name="checkmark" size={20} color="white" />}
+          hapticFeedback={true}
         />
       </View>
     </SafeAreaView>
