@@ -2,40 +2,93 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  TextInput,
   StyleSheet,
   SafeAreaView,
   TouchableOpacity,
   Alert,
 } from 'react-native';
+import { useForm, Controller } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
+import FormInput from '../../components/forms/FormInput';
+import { loginSchema } from '../../utils/validation';
+import ApiService from '../../services/api';
 
 const LoginScreen = ({ navigation }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert('Error', 'Please fill in all fields');
-      return;
-    }
+  const {
+    control,
+    handleSubmit,
+    formState: { errors, isValid },
+    setError,
+  } = useForm({
+    resolver: yupResolver(loginSchema),
+    mode: 'onChange',
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  });
 
+  const handleLogin = async (data) => {
     setLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const response = await ApiService.auth.login(data.email, data.password);
+      
+      if (response.success) {
+        // Store auth tokens if they exist
+        if (response.data.accessToken) {
+          await AsyncStorage.setItem('auth_token', response.data.accessToken);
+        }
+        if (response.data.refreshToken) {
+          await AsyncStorage.setItem('refresh_token', response.data.refreshToken);
+        }
+        
+        // Navigate to main app
+        navigation.replace('MainTabs');
+      } else {
+        Alert.alert('Login Failed', response.message || 'Invalid credentials');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      
+      if (error.statusCode === 401) {
+        setError('password', { 
+          type: 'manual', 
+          message: 'Invalid email or password' 
+        });
+      } else if (error.statusCode === 422) {
+        // Handle validation errors from server
+        if (error.data?.errors) {
+          Object.keys(error.data.errors).forEach(field => {
+            setError(field, {
+              type: 'manual',
+              message: error.data.errors[field][0]
+            });
+          });
+        }
+      } else {
+        Alert.alert(
+          'Connection Error', 
+          'Unable to connect to server. Please check your internet connection and try again.'
+        );
+      }
+    } finally {
       setLoading(false);
-      // Navigate to main app
-      navigation.replace('MainTabs');
-    }, 1500);
+    }
   };
 
   const handleSignUp = () => {
     navigation.navigate('SignUp');
+  };
+
+  const handleDemoLogin = () => {
+    navigation.replace('MainTabs');
   };
 
   return (
@@ -52,49 +105,49 @@ const LoginScreen = ({ navigation }) => {
 
         {/* Login Form */}
         <Card style={styles.formCard}>
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Email</Text>
-            <View style={styles.inputWrapper}>
-              <Ionicons name="mail-outline" size={20} color="#6b7280" />
-              <TextInput
-                style={styles.input}
+          <Controller
+            control={control}
+            name="email"
+            render={({ field: { onChange, onBlur, value } }) => (
+              <FormInput
+                label="Email"
                 placeholder="Enter your email"
-                placeholderTextColor="#6b7280"
-                value={email}
-                onChangeText={setEmail}
+                value={value}
+                onChangeText={onChange}
+                onBlur={onBlur}
+                error={errors.email?.message}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
+                autoComplete="email"
+                leftIcon="mail-outline"
+                variant="outlined"
+                required
               />
-            </View>
-          </View>
+            )}
+          />
 
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Password</Text>
-            <View style={styles.inputWrapper}>
-              <Ionicons name="lock-closed-outline" size={20} color="#6b7280" />
-              <TextInput
-                style={styles.input}
+          <Controller
+            control={control}
+            name="password"
+            render={({ field: { onChange, onBlur, value } }) => (
+              <FormInput
+                label="Password"
                 placeholder="Enter your password"
-                placeholderTextColor="#6b7280"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry={!showPassword}
+                value={value}
+                onChangeText={onChange}
+                onBlur={onBlur}
+                error={errors.password?.message}
+                secureTextEntry={true}
                 autoCapitalize="none"
                 autoCorrect={false}
+                autoComplete="password"
+                leftIcon="lock-closed-outline"
+                variant="outlined"
+                required
               />
-              <TouchableOpacity
-                onPress={() => setShowPassword(!showPassword)}
-                style={styles.eyeIcon}
-              >
-                <Ionicons
-                  name={showPassword ? 'eye-off-outline' : 'eye-outline'}
-                  size={20}
-                  color="#6b7280"
-                />
-              </TouchableOpacity>
-            </View>
-          </View>
+            )}
+          />
 
           <TouchableOpacity style={styles.forgotPassword}>
             <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
@@ -102,8 +155,9 @@ const LoginScreen = ({ navigation }) => {
 
           <Button
             title="Sign In"
-            onPress={handleLogin}
+            onPress={handleSubmit(handleLogin)}
             loading={loading}
+            disabled={!isValid || loading}
             style={styles.loginButton}
           />
         </Card>
@@ -119,7 +173,7 @@ const LoginScreen = ({ navigation }) => {
         {/* Demo Login */}
         <TouchableOpacity
           style={styles.demoButton}
-          onPress={() => navigation.replace('MainTabs')}
+          onPress={handleDemoLogin}
         >
           <Text style={styles.demoButtonText}>Continue as Demo User</Text>
         </TouchableOpacity>
