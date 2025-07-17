@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "MyPhoneApp",
-    "slug": "MyPhoneApp",
+    "name": "bulge",
+    "slug": "bulge",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
